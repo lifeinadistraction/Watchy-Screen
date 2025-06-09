@@ -1,4 +1,5 @@
 #include "Watchy.h"
+#include "Screens/ScreenManager.h"
 
 #include <vector>
 
@@ -221,6 +222,10 @@ void init() {
   display.setFullWindow();
   display.epd2.asyncPowerOn();
 
+  // Initialize screens
+  if (screen == nullptr) {
+    screen = ScreenManager::getPomodoroScreen();
+  }
 
   for (auto &&owc : owcVec) {
     owc(wakeup_reason);

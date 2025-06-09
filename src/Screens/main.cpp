@@ -14,6 +14,7 @@
 #include "SetLocationScreen.h"
 #include "SetTimeScreen.h"
 #include "ShowBatteryScreen.h"
+#include "PomodoroScreen.h"
 
 #include "ShowBluetoothScreen.h"
 #include "ShowOrientationScreen.h"
@@ -51,6 +52,7 @@
 
 
 TestScreen testScreen;
+PomodoroScreen pomodoroScreen;
 
 ResetWifiScreen resetWifiScreen;
 SetTimeScreen setTimeScreen;
@@ -65,13 +67,12 @@ RestartScreen restartScreen;
 WebServerScreen webServerScreen;
 AirplaneModeScreen airplaneModeScreen;
 MenuItem menuItems[] = {
+                        {"Pomodoro", &pomodoroScreen},
                         {"Airplane mode", &airplaneModeScreen},
                         {"Reset Wifi", &resetWifiScreen},
                         {"Web server", &webServerScreen},
                         {"Set Time", &setTimeScreen},
-                      //  {"Blufi", &blufiScreen},
                         {"Update (OTA)", &otaScreen},
-//                        {"Update (BLE)", &updateFWScreen},
                         {"Sync Time", &syncTimeScreen},
                         {"Set Location", &setLocationScreen},
                         {"Get Weather", &getWeatherScreen},

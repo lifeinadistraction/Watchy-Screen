@@ -195,7 +195,7 @@ void setup() {
   }
 
   if (Watchy::screen == nullptr) {
-    Watchy::screen = &carousel;
+    Watchy::screen = &pomodoroScreen;  // Set Pomodoro as default screen instead of carousel
   }
   Watchy::init();
 }

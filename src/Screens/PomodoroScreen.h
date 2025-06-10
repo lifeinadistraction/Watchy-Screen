@@ -4,6 +4,7 @@
 #include "Watchy.h"
 #include "Fonts/OptimaLTStd12pt7b.h"
 #include "Fonts/OptimaLTStd22pt7b.h"
+#include "Events.h"
 
 class PomodoroScreen : public Screen {
 public:
@@ -19,4 +20,5 @@ private:
     RTC_DATA_ATTR static bool isRunning;
     RTC_DATA_ATTR static int remainingMinutes;
     RTC_DATA_ATTR static unsigned long lastUpdateTime;
+    Watchy_Event::BackgroundTask timerTask;
 }; 

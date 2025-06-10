@@ -8,10 +8,23 @@ bool PomodoroScreen::isRunning = false;
 int PomodoroScreen::remainingMinutes = 25;
 unsigned long PomodoroScreen::lastUpdateTime = 0;
 
-PomodoroScreen::PomodoroScreen() {
+PomodoroScreen::PomodoroScreen() : 
+    timerTask("pomodoroTimer", [this]() {
+        while (isRunning) {
+            vTaskDelay(60000 / portTICK_PERIOD_MS); // Wait for 1 minute
+            if (isRunning) {
+                remainingMinutes--;
+                if (remainingMinutes <= 0) {
+                    isRunning = false;
+                    remainingMinutes = POMODORO_DURATION;
+                }
+                show();
+                Watchy::showWatchFace(true);
+            }
+        }
+    })
+{
     instance = this;
-    // Register the update callback
-    Watchy::AddOnWakeCallback(&PomodoroScreen::updateTimer);
 }
 
 void PomodoroScreen::show() {
@@ -41,31 +54,18 @@ void PomodoroScreen::menu() {
     isRunning = !isRunning;
     if (isRunning) {
         lastUpdateTime = millis();
-        // Set RTC to wake up every minute
-        Watchy::RTC.setRefresh(RTC_REFRESH_MIN);
+        timerTask.begin();
     } else {
-        // Stop RTC refresh when paused
-        Watchy::RTC.setRefresh(RTC_REFRESH_NONE);
+        timerTask.kill();
     }
     show();
     Watchy::showWatchFace(true);
 }
 
 void PomodoroScreen::update() {
-    if (isRunning) {
-        remainingMinutes--;
-        if (remainingMinutes <= 0) {
-            isRunning = false;
-            remainingMinutes = POMODORO_DURATION;
-            Watchy::RTC.setRefresh(RTC_REFRESH_NONE);
-        }
-        show();
-        Watchy::showWatchFace(true);
-    }
+    // This method is no longer needed as updates are handled by the BackgroundTask
 }
 
 void PomodoroScreen::updateTimer(const esp_sleep_wakeup_cause_t wakeup_reason) {
-    if (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER && Watchy::screen == instance && instance) {
-        instance->update();
-    }
+    // This method is no longer needed as updates are handled by the BackgroundTask
 } 

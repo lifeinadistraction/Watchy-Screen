@@ -3,80 +3,69 @@
 #include "Fonts/OptimaLTStd7pt7b.h"
 #include "Fonts/OptimaLTStd22pt7b.h"
 
+PomodoroScreen* PomodoroScreen::instance = nullptr;
+bool PomodoroScreen::isRunning = false;
+int PomodoroScreen::remainingMinutes = 25;
+unsigned long PomodoroScreen::lastUpdateTime = 0;
+
 PomodoroScreen::PomodoroScreen() {
-    // Initialize timer state
-    isRunning = false;
-    remainingMinutes = POMODORO_DURATION;
-    lastUpdateTime = 0;
+    instance = this;
+    // Register the update callback
+    Watchy::AddOnWakeCallback(&PomodoroScreen::updateTimer);
 }
 
 void PomodoroScreen::show() {
-    Watchy::display.fillScreen(GxEPD_BLACK);
-    Watchy::display.setTextColor(GxEPD_WHITE);
-    Watchy::display.setTextWrap(false);
+    Watchy::display.fillScreen(GxEPD_WHITE);
     
-    // Draw title
-    Watchy::display.setFont(OptimaLTStd7pt7b);
-    Watchy::display.setCursor(0, 20);
-    Watchy::display.println("Pomodoro Timer");
-    
-    // Draw timer
+    // Display timer with large font
     Watchy::display.setFont(OptimaLTStd22pt7b);
+    Watchy::display.setTextColor(GxEPD_BLACK);
     char timeStr[6];
     sprintf(timeStr, "%02d:00", remainingMinutes);
+    Watchy::display.setCursor(50, 80);
+    Watchy::display.print(timeStr);
     
-    // Center the time display
-    int16_t x1, y1;
-    uint16_t w, h;
-    Watchy::display.getTextBounds(timeStr, 0, 0, &x1, &y1, &w, &h);
-    int xPos = (200 - w) / 2;  // Center horizontally (200 is display width)
-    int yPos = 100;  // Position vertically
+    // Display status with smaller font
+    Watchy::display.setFont(OptimaLTStd12pt7b);
+    Watchy::display.setCursor(50, 120);
+    Watchy::display.print(isRunning ? "Running" : "Paused");
     
-    Watchy::display.setCursor(xPos, yPos);
-    Watchy::display.println(timeStr);
-    
-    // Draw status
-    Watchy::display.setFont(OptimaLTStd7pt7b);
-    Watchy::display.setCursor(0, 150);
-    Watchy::display.println(isRunning ? "Running" : "Paused");
-    
-    // Draw instructions
-    Watchy::display.setCursor(0, 180);
-    Watchy::display.println("Press MENU to start/pause");
-    Watchy::display.println("Press BACK to reset");
-    
-    Watchy::display.display(true);
-}
-
-void PomodoroScreen::update() {
-    if (isRunning) {
-        unsigned long currentTime = millis();
-        if (currentTime - lastUpdateTime >= 60000) {  // Update every minute
-            if (remainingMinutes > 0) {
-                remainingMinutes--;
-                lastUpdateTime = currentTime;
-                show();  // Update display
-            } else {
-                // Timer finished
-                isRunning = false;
-                // TODO: Add notification or sound
-                show();
-            }
-        }
-    }
+    // Display instructions
+    Watchy::display.setCursor(20, 160);
+    Watchy::display.print("MENU: Start/Stop");
+    Watchy::display.setCursor(20, 180);
+    Watchy::display.print("BACK: Reset");
 }
 
 void PomodoroScreen::menu() {
     isRunning = !isRunning;
     if (isRunning) {
         lastUpdateTime = millis();
+        // Set RTC to wake up every minute
+        Watchy::RTC.setRefresh(RTC_REFRESH_MIN);
+    } else {
+        // Stop RTC refresh when paused
+        Watchy::RTC.setRefresh(RTC_REFRESH_NONE);
     }
     show();
+    Watchy::showWatchFace(true);
 }
 
-void PomodoroScreen::back() {
-    // Reset timer
-    remainingMinutes = POMODORO_DURATION;
-    isRunning = false;
-    show();
+void PomodoroScreen::update() {
+    if (isRunning) {
+        remainingMinutes--;
+        if (remainingMinutes <= 0) {
+            isRunning = false;
+            remainingMinutes = POMODORO_DURATION;
+            Watchy::RTC.setRefresh(RTC_REFRESH_NONE);
+        }
+        show();
+        Watchy::showWatchFace(true);
+    }
+}
+
+void PomodoroScreen::updateTimer(const esp_sleep_wakeup_cause_t wakeup_reason) {
+    if (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER && Watchy::screen == instance && instance) {
+        instance->update();
+    }
 } 

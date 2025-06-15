@@ -1,10 +1,8 @@
 #include "PomodoroScreen.h"
 #include "Watchy.h"
-#include "Fonts/OptimaLTStd7pt7b.h"
-#include "Fonts/OptimaLTStd12pt7b.h"
-#include "Fonts/OptimaLTStd22pt7b.h"
 #include "SevenSeg/DSEG7_Classic_Bold_53.h"
 #include "SevenSeg/DSEG7_Classic_Bold_25.h"
+#include "SevenSeg/icons7Seg.bold.h"
 
 PomodoroScreen* PomodoroScreen::instance = nullptr;
 bool PomodoroScreen::isRunning = false;
@@ -49,10 +47,31 @@ void PomodoroScreen::show() {
     Watchy::display.setCursor(100, 90);
     Watchy::display.print(ones);
     
-    // Display status with DSEG7_Classic_Bold_25 font
-    Watchy::display.setFont(&DSEG7_Classic_Bold_25);
-    Watchy::display.setCursor(50, 160);
-    Watchy::display.print(isRunning ? "Running" : "Paused");
+    // Display battery icon and fill segments
+    float VBAT = Watchy::getBatteryVoltage();
+    float batStat = Watchy::getBatteryState(VBAT);
+    const int BATTERY_SEGMENT_COUNT = 3;
+    const int BATTERY_SEGMENT_WIDTH = 7;
+    const int BATTERY_SEGMENT_HEIGHT = 11;
+    const int BATTERY_SEGMENT_SPACING = BATTERY_SEGMENT_WIDTH + 2;
+    const int BATTERY_SEGMENTS_WIDTH = (BATTERY_SEGMENT_COUNT * BATTERY_SEGMENT_WIDTH);
+    int batteryX = 154;
+    int batteryY = 10;
+    Watchy::display.drawBitmap(batteryX, batteryY, battery37x21, 37, 21, GxEPD_BLACK);
+    Watchy::display.fillRect(batteryX+5, batteryY+5, 27, BATTERY_SEGMENT_HEIGHT, GxEPD_WHITE); // clear battery segments
+    for( int8_t batterySegment = 0, fillWidth = (batStat * BATTERY_SEGMENTS_WIDTH) + 0.5f; 
+        (batterySegment < BATTERY_SEGMENT_COUNT) && (fillWidth > 0); 
+        batterySegment++, fillWidth -= BATTERY_SEGMENT_WIDTH){
+        int8_t segmentWidth = ((fillWidth >= BATTERY_SEGMENT_WIDTH) ? BATTERY_SEGMENT_WIDTH : fillWidth );
+        if( segmentWidth < 1 )
+            break;
+        Watchy::display.fillRect(batteryX+5 + (batterySegment * BATTERY_SEGMENT_SPACING), batteryY+5, segmentWidth, BATTERY_SEGMENT_HEIGHT, GxEPD_BLACK);
+    }
+    
+    // Display airplane_mode_on21x21 icon if running, otherwise nothing
+    if(isRunning) {
+        Watchy::display.drawBitmap(100, 160, airplane_mode_on21x21, 21, 21, GxEPD_BLACK);
+    }
 }
 
 void PomodoroScreen::menu() {

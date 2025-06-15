@@ -40,11 +40,11 @@ void PomodoroScreen::show() {
     int ones = remainingMinutes % 10;
     
     // Display tens digit
-    Watchy::display.setCursor(40, 90);
+    Watchy::display.setCursor(40, 130);
     Watchy::display.print(tens);
     
     // Display ones digit (moved closer)
-    Watchy::display.setCursor(100, 90);
+    Watchy::display.setCursor(100, 130);
     Watchy::display.print(ones);
     
     // Display battery icon and fill segments

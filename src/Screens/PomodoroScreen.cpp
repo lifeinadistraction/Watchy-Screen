@@ -1,7 +1,10 @@
 #include "PomodoroScreen.h"
 #include "Watchy.h"
 #include "Fonts/OptimaLTStd7pt7b.h"
+#include "Fonts/OptimaLTStd12pt7b.h"
 #include "Fonts/OptimaLTStd22pt7b.h"
+#include "SevenSeg/DSEG7_Classic_Bold_53.h"
+#include "SevenSeg/DSEG7_Classic_Bold_25.h"
 
 PomodoroScreen* PomodoroScreen::instance = nullptr;
 bool PomodoroScreen::isRunning = false;
@@ -30,24 +33,26 @@ PomodoroScreen::PomodoroScreen() :
 void PomodoroScreen::show() {
     Watchy::display.fillScreen(GxEPD_WHITE);
     
-    // Display timer with large font
-    Watchy::display.setFont(OptimaLTStd22pt7b);
+    // Display timer with 7-segment font (Bold 53)
+    Watchy::display.setFont(&DSEG7_Classic_Bold_53);
     Watchy::display.setTextColor(GxEPD_BLACK);
-    char timeStr[6];
-    sprintf(timeStr, "%02d:00", remainingMinutes);
-    Watchy::display.setCursor(50, 80);
-    Watchy::display.print(timeStr);
     
-    // Display status with smaller font
-    Watchy::display.setFont(OptimaLTStd12pt7b);
-    Watchy::display.setCursor(50, 120);
+    // Calculate positions for the numbers
+    int tens = remainingMinutes / 10;
+    int ones = remainingMinutes % 10;
+    
+    // Display tens digit
+    Watchy::display.setCursor(40, 90);
+    Watchy::display.print(tens);
+    
+    // Display ones digit (moved closer)
+    Watchy::display.setCursor(100, 90);
+    Watchy::display.print(ones);
+    
+    // Display status with DSEG7_Classic_Bold_25 font
+    Watchy::display.setFont(&DSEG7_Classic_Bold_25);
+    Watchy::display.setCursor(50, 160);
     Watchy::display.print(isRunning ? "Running" : "Paused");
-    
-    // Display instructions
-    Watchy::display.setCursor(20, 160);
-    Watchy::display.print("MENU: Start/Stop");
-    Watchy::display.setCursor(20, 180);
-    Watchy::display.print("BACK: Reset");
 }
 
 void PomodoroScreen::menu() {
@@ -60,6 +65,20 @@ void PomodoroScreen::menu() {
     }
     show();
     Watchy::showWatchFace(true);
+}
+
+void PomodoroScreen::back() {
+    remainingMinutes = 25;
+    isRunning = false;
+    show();
+}
+
+void PomodoroScreen::up() {
+    // Not used in Pomodoro screen
+}
+
+void PomodoroScreen::down() {
+    // Not used in Pomodoro screen
 }
 
 void PomodoroScreen::update() {

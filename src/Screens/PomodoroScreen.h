@@ -11,6 +11,9 @@ public:
     PomodoroScreen();
     void show() override;
     void menu() override;
+    void back() override;
+    void up() override;
+    void down() override;
     void update();
     static void updateTimer(const esp_sleep_wakeup_cause_t wakeup_reason);
     static PomodoroScreen* instance;

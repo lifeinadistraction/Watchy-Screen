@@ -4,31 +4,35 @@
 #include "SevenSeg/DSEG7_Classic_Bold_25.h"
 #include "SevenSeg/icons7Seg.bold.h"
 
-PomodoroScreen* PomodoroScreen::instance = nullptr;
-bool PomodoroScreen::isRunning = false;
-int PomodoroScreen::remainingMinutes = 25;
-unsigned long PomodoroScreen::lastUpdateTime = 0;
+RTC_DATA_ATTR bool PomodoroScreen::isRunning = false;
+RTC_DATA_ATTR int PomodoroScreen::remainingMinutes = 25;
+RTC_DATA_ATTR unsigned long PomodoroScreen::lastUpdateTime = 0;
 
-PomodoroScreen::PomodoroScreen() : 
-    timerTask("pomodoroTimer", [this]() {
-        while (isRunning) {
-            vTaskDelay(60000 / portTICK_PERIOD_MS); // Wait for 1 minute
-            if (isRunning) {
-                remainingMinutes--;
-                if (remainingMinutes <= 0) {
-                    isRunning = false;
-                    remainingMinutes = POMODORO_DURATION;
-                }
-                show();
-                Watchy::showWatchFace(true);
-            }
-        }
-    })
-{
-    instance = this;
+PomodoroScreen::PomodoroScreen() {
+}
+
+PomodoroScreen::~PomodoroScreen() {
 }
 
 void PomodoroScreen::show() {
+    // Decrement timer if running and more than a minute has passed
+    if (isRunning) {
+        // Use RTC unixtime which is persistent across deep sleep
+        tmElements_t tm;
+        Watchy::RTC.read(tm);
+        unsigned long now = makeTime(tm); 
+        if (now - lastUpdateTime >= 60) { // 60 seconds
+            int minutesPassed = (now - lastUpdateTime) / 60;
+            remainingMinutes -= minutesPassed;
+            if (remainingMinutes <= 0) {
+                isRunning = false;
+                remainingMinutes = POMODORO_DURATION;
+            }
+            // This handles cases where the refresh is not exactly every minute.
+            lastUpdateTime += minutesPassed * 60;
+        }
+    }
+
     Watchy::display.fillScreen(GxEPD_WHITE);
     
     // Display timer with 7-segment font (Bold 53)
@@ -77,10 +81,13 @@ void PomodoroScreen::show() {
 void PomodoroScreen::menu() {
     isRunning = !isRunning;
     if (isRunning) {
-        lastUpdateTime = millis();
-        timerTask.begin();
-    } else {
-        timerTask.kill();
+        if (remainingMinutes <= 0) {
+            remainingMinutes = POMODORO_DURATION;
+        }
+        // Use RTC unixtime which is persistent across deep sleep
+        tmElements_t tm;
+        Watchy::RTC.read(tm);
+        lastUpdateTime = makeTime(tm);
     }
     show();
     Watchy::showWatchFace(true);
@@ -90,6 +97,7 @@ void PomodoroScreen::back() {
     remainingMinutes = 25;
     isRunning = false;
     show();
+    Watchy::showWatchFace(true);
 }
 
 void PomodoroScreen::up() {
@@ -101,9 +109,9 @@ void PomodoroScreen::down() {
 }
 
 void PomodoroScreen::update() {
-    // This method is no longer needed as updates are handled by the BackgroundTask
+    // Not needed with new logic
 }
 
 void PomodoroScreen::updateTimer(const esp_sleep_wakeup_cause_t wakeup_reason) {
-    // This method is no longer needed as updates are handled by the BackgroundTask
+    // Not needed with new logic
 } 

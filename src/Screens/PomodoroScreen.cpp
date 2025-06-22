@@ -1,5 +1,6 @@
 #include "PomodoroScreen.h"
 #include "Watchy.h"
+#include "Bahn-for-Watchy/DIN_1451_Engschrift_Regular64pt7b.h"
 #include "SevenSeg/DSEG7_Classic_Bold_53.h"
 #include "SevenSeg/DSEG7_Classic_Bold_25.h"
 #include "SevenSeg/icons7Seg.bold.h"
@@ -35,21 +36,25 @@ void PomodoroScreen::show() {
 
     Watchy::display.fillScreen(GxEPD_WHITE);
     
-    // Display timer with 7-segment font (Bold 53)
-    Watchy::display.setFont(&DSEG7_Classic_Bold_53);
+    // Display timer with DIN 1451 Engschrift font
+    Watchy::display.setFont(&DIN_1451_Engschrift_Regular64pt7b);
     Watchy::display.setTextColor(GxEPD_BLACK);
     
-    // Calculate positions for the numbers
-    int tens = remainingMinutes / 10;
-    int ones = remainingMinutes % 10;
+    // Initialize variables
+    int16_t  x1, y1, lasty;
+    uint16_t w, h;
     
-    // Display tens digit
-    Watchy::display.setCursor(40, 130);
-    Watchy::display.print(tens);
-    
-    // Display ones digit (moved closer)
-    Watchy::display.setCursor(100, 130);
-    Watchy::display.print(ones);
+    // Display remaining minutes
+    String textstring;
+    if (remainingMinutes < 10) {
+        textstring = "0";
+      } else {
+        textstring = "";
+      }
+    textstring += remainingMinutes;
+    Watchy::display.getTextBounds(textstring, 0, 0, &x1, &y1, &w, &h);
+    Watchy::display.setCursor(100-w, 100-5);
+    Watchy::display.print(textstring);
     
     // Display battery icon and fill segments
     float VBAT = Watchy::getBatteryVoltage();

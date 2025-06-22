@@ -6,8 +6,7 @@
 #include "Fonts/FreeMonoBold9pt7b.h"
 
 RTC_DATA_ATTR bool PomodoroScreen::isRunning = false;
-RTC_DATA_ATTR int PomodoroScreen::remainingMinutes = 25;
-RTC_DATA_ATTR unsigned long PomodoroScreen::lastUpdateTime = 0;
+RTC_DATA_ATTR unsigned long PomodoroScreen::startTime = 0;
 
 PomodoroScreen::PomodoroScreen() {
 }
@@ -16,6 +15,8 @@ PomodoroScreen::~PomodoroScreen() {
 }
 
 void PomodoroScreen::show() {
+    Watchy::RTC.setRefresh(RTC_REFRESH_MIN); // Ensure minute wakeup while Pomodoro is active
+    int remainingMinutes = 25;
     unsigned long now = 0;
     unsigned long elapsed_seconds = 0;
     
@@ -23,16 +24,12 @@ void PomodoroScreen::show() {
         tmElements_t tm;
         Watchy::RTC.read(tm);
         now = makeTime(tm);
-        elapsed_seconds = now - lastUpdateTime;
-
-        if (elapsed_seconds >= 60) {
-            int minutesPassed = elapsed_seconds / 60;
-            remainingMinutes -= minutesPassed;
-            if (remainingMinutes <= 0) {
-                isRunning = false;
-                remainingMinutes = POMODORO_DURATION;
-            }
-            lastUpdateTime += minutesPassed * 60;
+        elapsed_seconds = now - startTime;
+        int minutesPassed = elapsed_seconds / 60;
+        remainingMinutes = 25 - minutesPassed;
+        if (remainingMinutes <= 0) {
+            isRunning = false;
+            remainingMinutes = 25;
         }
     }
 
@@ -93,18 +90,14 @@ void PomodoroScreen::show() {
 void PomodoroScreen::menu() {
     isRunning = !isRunning;
     if (isRunning) {
-        if (remainingMinutes <= 0) {
-            remainingMinutes = POMODORO_DURATION;
-        }
         tmElements_t tm;
         Watchy::RTC.read(tm);
-        lastUpdateTime = makeTime(tm);
+        startTime = makeTime(tm);
     }
     Watchy::showWatchFace(true);
 }
 
 void PomodoroScreen::back() {
-    remainingMinutes = 25;
     isRunning = false;
     Watchy::showWatchFace(true);
 }

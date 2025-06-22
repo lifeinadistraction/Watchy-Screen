@@ -3,6 +3,7 @@
 #include "SevenSeg/DSEG7_Classic_Bold_53.h"
 #include "SevenSeg/DSEG7_Classic_Bold_25.h"
 #include "SevenSeg/icons7Seg.bold.h"
+#include "Fonts/FreeMonoBold9pt7b.h"
 
 RTC_DATA_ATTR bool PomodoroScreen::isRunning = false;
 RTC_DATA_ATTR int PomodoroScreen::remainingMinutes = 25;
@@ -15,20 +16,22 @@ PomodoroScreen::~PomodoroScreen() {
 }
 
 void PomodoroScreen::show() {
-    // Decrement timer if running and more than a minute has passed
+    unsigned long now = 0;
+    unsigned long elapsed_seconds = 0;
+    
     if (isRunning) {
-        // Use RTC unixtime which is persistent across deep sleep
         tmElements_t tm;
         Watchy::RTC.read(tm);
-        unsigned long now = makeTime(tm); 
-        if (now - lastUpdateTime >= 60) { // 60 seconds
-            int minutesPassed = (now - lastUpdateTime) / 60;
+        now = makeTime(tm);
+        elapsed_seconds = now - lastUpdateTime;
+
+        if (elapsed_seconds >= 60) {
+            int minutesPassed = elapsed_seconds / 60;
             remainingMinutes -= minutesPassed;
             if (remainingMinutes <= 0) {
                 isRunning = false;
                 remainingMinutes = POMODORO_DURATION;
             }
-            // This handles cases where the refresh is not exactly every minute.
             lastUpdateTime += minutesPassed * 60;
         }
     }
@@ -74,8 +77,17 @@ void PomodoroScreen::show() {
     
     // Display airplane_mode_on21x21 icon if running, otherwise nothing
     if(isRunning) {
-        Watchy::display.drawBitmap(100, 160, airplane_mode_on21x21, 21, 21, GxEPD_BLACK);
+        Watchy::display.drawBitmap(160, 80, airplane_mode_on21x21, 21, 21, GxEPD_BLACK);
     }
+
+    // DEBUGGING OUTPUT
+    Watchy::display.setFont(&FreeMonoBold9pt7b);
+    Watchy::display.setCursor(0, 180);
+    Watchy::display.print("elapsed: ");
+    Watchy::display.print(elapsed_seconds);
+    Watchy::display.setCursor(0, 195);
+    Watchy::display.print("running: ");
+    Watchy::display.print(isRunning ? "T" : "F");
 }
 
 void PomodoroScreen::menu() {
@@ -84,19 +96,16 @@ void PomodoroScreen::menu() {
         if (remainingMinutes <= 0) {
             remainingMinutes = POMODORO_DURATION;
         }
-        // Use RTC unixtime which is persistent across deep sleep
         tmElements_t tm;
         Watchy::RTC.read(tm);
         lastUpdateTime = makeTime(tm);
     }
-    show();
     Watchy::showWatchFace(true);
 }
 
 void PomodoroScreen::back() {
     remainingMinutes = 25;
     isRunning = false;
-    show();
     Watchy::showWatchFace(true);
 }
 

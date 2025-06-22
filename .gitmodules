@@ -1,3 +1,6 @@
 [submodule "Watchy.wiki"]
 	path = Watchy.wiki
 	url = https://github.com/sqfmi/Watchy.wiki.git
+[submodule "src/Screens/Bahn-for-Watchy"]
+	path = src/Screens/Bahn-for-Watchy
+	url = https://github.com/BraininaBowl/Bahn-for-Watchy.git

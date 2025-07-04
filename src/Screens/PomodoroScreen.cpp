@@ -76,11 +76,6 @@ void PomodoroScreen::show() {
             break;
         Watchy::display.fillRect(batteryX+5 + (batterySegment * BATTERY_SEGMENT_SPACING), batteryY+5, segmentWidth, BATTERY_SEGMENT_HEIGHT, GxEPD_BLACK);
     }
-    
-    // Display airplane_mode_on21x21 icon if running, otherwise nothing
-    if(isRunning) {
-        Watchy::display.drawBitmap(160, 80, airplane_mode_on21x21, 21, 21, GxEPD_BLACK);
-    }
 
     // DEBUGGING OUTPUT
     Watchy::display.setFont(&FreeMonoBold9pt7b);

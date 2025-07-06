@@ -17,8 +17,12 @@ PomodoroScreen::~PomodoroScreen() {
 }
 
 void PomodoroScreen::show() {
+    if (isRunning) {
+        Watchy::RTC.setRefresh(RTC_REFRESH_MIN); // Only set minute wakeup when running
+    } else {
+        Watchy::RTC.setRefresh(RTC_REFRESH_NONE); // Disable periodic wakeup when paused
+    }
     refreshCount++;
-    Watchy::RTC.setRefresh(RTC_REFRESH_MIN); // Ensure minute wakeup while Pomodoro is active
     int remainingMinutes = 25;
     unsigned long now = 0;
     unsigned long elapsed_seconds = 0;

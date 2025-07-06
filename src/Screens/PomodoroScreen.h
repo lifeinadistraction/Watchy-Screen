@@ -21,6 +21,7 @@ private:
     RTC_DATA_ATTR static int remainingMinutes;
     RTC_DATA_ATTR static unsigned long lastUpdateTime;
     RTC_DATA_ATTR static unsigned long startTime;
+    RTC_DATA_ATTR static int refreshCount;
     static const int POMODORO_DURATION = 25;
     
     void checkTimer();

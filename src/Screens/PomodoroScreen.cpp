@@ -8,6 +8,7 @@
 
 RTC_DATA_ATTR bool PomodoroScreen::isRunning = false;
 RTC_DATA_ATTR unsigned long PomodoroScreen::startTime = 0;
+RTC_DATA_ATTR int PomodoroScreen::refreshCount = 0;
 
 PomodoroScreen::PomodoroScreen() {
 }
@@ -16,6 +17,7 @@ PomodoroScreen::~PomodoroScreen() {
 }
 
 void PomodoroScreen::show() {
+    refreshCount++;
     Watchy::RTC.setRefresh(RTC_REFRESH_MIN); // Ensure minute wakeup while Pomodoro is active
     int remainingMinutes = 25;
     unsigned long now = 0;
@@ -79,6 +81,9 @@ void PomodoroScreen::show() {
 
     // DEBUGGING OUTPUT
     Watchy::display.setFont(&FreeMonoBold9pt7b);
+    Watchy::display.setCursor(0, 165);
+    Watchy::display.print("refresh: ");
+    Watchy::display.print(refreshCount);
     Watchy::display.setCursor(0, 180);
     Watchy::display.print("elapsed: ");
     Watchy::display.print(elapsed_seconds);

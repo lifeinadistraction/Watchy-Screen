@@ -25,7 +25,8 @@ void PomodoroScreen::show() {
         Watchy::RTC.setRefresh(RTC_REFRESH_NONE); // Disable periodic wakeup when paused
     }
     refreshCount++;
-    int remainingMinutes = 25;
+    const int pomoMinutes = 5;
+    int remainingMinutes = pomoMinutes;
     unsigned long now = 0;
     unsigned long elapsed_seconds = 0;
     
@@ -33,13 +34,15 @@ void PomodoroScreen::show() {
         tmElements_t tm;
         Watchy::RTC.read(tm);
         now = makeTime(tm);
-        elapsed_seconds = now - startTime;
-        int minutesPassed = elapsed_seconds / 60;
-        remainingMinutes = 25 - minutesPassed;
-        if (remainingMinutes <= 0) {
-            isRunning = false;
-            remainingMinutes = 25;
-            buzz_gpio();
+        if (startTime > 0 && now >= startTime) {
+            elapsed_seconds = now - startTime;
+            int minutesPassed = elapsed_seconds / 60;
+            remainingMinutes = pomoMinutes - minutesPassed;
+            if (remainingMinutes <= 0) {
+                isRunning = false;
+                remainingMinutes = pomoMinutes;
+                buzz_gpio();
+            }
         }
     }
 

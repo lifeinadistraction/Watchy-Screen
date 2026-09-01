@@ -12,7 +12,7 @@ void buzz_gpio(){
   pinMode(VIB_MOTOR_PIN, OUTPUT);
   // five cycles of 3 buzzes each
   for (int c = 0; c < 1; c++) {
-    for (int b = 0; b < 1; b++) {
+    for (int b = 0; b < 3; b++) {
       digitalWrite(VIB_MOTOR_PIN, true);
       delay(100);
       digitalWrite(VIB_MOTOR_PIN, false);

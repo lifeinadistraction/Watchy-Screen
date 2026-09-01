@@ -6,6 +6,8 @@
 #include "SevenSeg/icons7Seg.bold.h"
 #include "Fonts/FreeMonoBold9pt7b.h"
 
+extern void buzz_gpio();
+
 RTC_DATA_ATTR bool PomodoroScreen::isRunning = false;
 RTC_DATA_ATTR unsigned long PomodoroScreen::startTime = 0;
 RTC_DATA_ATTR int PomodoroScreen::refreshCount = 0;
@@ -37,6 +39,7 @@ void PomodoroScreen::show() {
         if (remainingMinutes <= 0) {
             isRunning = false;
             remainingMinutes = 25;
+            buzz_gpio();
         }
     }
 
@@ -102,6 +105,7 @@ void PomodoroScreen::menu() {
         tmElements_t tm;
         Watchy::RTC.read(tm);
         startTime = makeTime(tm);
+        buzz_gpio();
     }
     Watchy::showWatchFace(true);
 }
